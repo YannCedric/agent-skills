@@ -1,0 +1,13 @@
+{
+  "title": "Scenario A: Same-Lane DB Retry",
+  "subtitle": "Forward update and retry are close neighbors",
+  "template": "system-left-to-right",
+  "nodes": [
+    {"id": "worker", "label": "Worker", "kind": "worker", "detail": ["writes status"], "lane": 0, "rank": 0},
+    {"id": "orders", "label": "Orders DB", "kind": "db", "detail": ["status", "attempts"], "lane": 0, "rank": 1}
+  ],
+  "edges": [
+    {"from": "worker", "to": "orders", "label": "update status", "kind": "sync", "route": "direct"},
+    {"from": "orders", "to": "worker", "label": "retry", "kind": "retry", "route": "top"}
+  ]
+}

@@ -1,0 +1,29 @@
+[build-system]
+requires = ["setuptools>=69"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "diagrammer-skill"
+version = "0.1.0"
+description = "Deterministic SVG/HTML technical diagram compiler for the diagrammer agent skill."
+readme = "SKILL.md"
+requires-python = ">=3.10"
+dependencies = []
+
+[project.optional-dependencies]
+render = ["playwright>=1.40"]
+test = ["pytest>=8"]
+
+[project.scripts]
+diagrammer-compile = "diagrammer.compiler:main"
+diagrammer-render = "diagrammer.render:main"
+diagrammer-validate = "diagrammer.validate_svg:main"
+diagrammer-check-examples = "diagrammer.example_gate:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["diagrammer*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]

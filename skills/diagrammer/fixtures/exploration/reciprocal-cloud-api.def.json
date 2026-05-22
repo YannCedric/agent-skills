@@ -1,0 +1,13 @@
+{
+  "title": "Scenario D: Cloud/API Retry",
+  "subtitle": "Longer over-route may be clearer than a cramped local shortcut",
+  "template": "system-left-to-right",
+  "nodes": [
+    {"id": "checkout", "label": "Checkout API", "kind": "api", "detail": ["cart", "idempotency"], "lane": 0, "rank": 0},
+    {"id": "provider", "label": "Payment Provider", "kind": "external", "detail": ["authorize", "capture"], "lane": 0, "rank": 1}
+  ],
+  "edges": [
+    {"from": "checkout", "to": "provider", "label": "authorize", "kind": "sync", "route": "direct"},
+    {"from": "provider", "to": "checkout", "label": "retry timeout", "kind": "retry", "route": "top"}
+  ]
+}

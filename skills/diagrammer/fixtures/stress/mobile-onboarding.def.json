@@ -1,0 +1,34 @@
+{
+  "title": "Mobile Onboarding Identity Flow",
+  "subtitle": "Signup, device trust, KYC review, and account activation",
+  "template": "system-left-to-right",
+  "nodes": [
+    {"id": "app", "label": "Mobile App", "kind": "client", "detail": ["signup form", "device signals"], "lane": 0, "rank": 0},
+    {"id": "gateway", "label": "API Gateway", "kind": "api", "detail": ["rate limits", "session cookie"], "lane": 0, "rank": 1},
+    {"id": "identity", "label": "Identity Service", "kind": "worker", "detail": ["profile draft", "risk score"], "lane": 0, "rank": 2},
+    {"id": "kyc", "label": "KYC Provider", "kind": "external", "detail": ["document scan", "liveness"], "lane": 0, "rank": 3},
+    {"id": "review", "label": "Manual Review Queue", "kind": "queue", "detail": ["edge cases", "SLA clock"], "lane": 1, "rank": 3},
+    {"id": "accounts", "label": "Accounts DB", "kind": "db", "detail": ["status", "verified_at"], "lane": 1, "rank": 4},
+    {"id": "notify", "label": "Notification Worker", "kind": "worker", "detail": ["email", "push"], "lane": 0, "rank": 5}
+  ],
+  "edges": [
+    {"from": "app", "to": "gateway", "label": "submit signup", "kind": "sync", "route": "direct"},
+    {"from": "gateway", "to": "identity", "label": "create draft", "kind": "sync", "route": "direct"},
+    {"from": "identity", "to": "kyc", "label": "verify identity", "kind": "sync", "route": "direct"},
+    {"from": "kyc", "to": "review", "label": "needs review", "kind": "async", "route": "bottom"},
+    {"from": "kyc", "to": "accounts", "label": "approved", "kind": "sync", "route": "bottom"},
+    {"from": "review", "to": "accounts", "label": "decision", "kind": "sync", "route": "direct"},
+    {"from": "accounts", "to": "notify", "label": "activated event", "kind": "async", "route": "top"},
+    {"from": "notify", "to": "app", "label": "status update", "kind": "async", "route": "top"}
+  ],
+  "annotations": [
+    {
+      "title": "Refactor stress",
+      "lines": ["Tests long return edge", "Mixes external, queue, db, worker shapes"],
+      "lane": 2,
+      "rank": 0
+    }
+  ],
+  "assumptions": ["Device fingerprinting is summarized as app-side signals"],
+  "notImplied": ["No fraud model internals"]
+}

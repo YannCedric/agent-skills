@@ -1,0 +1,34 @@
+{
+  "title": "Incident Response Control Loop",
+  "subtitle": "Alert grouping, ownership, mitigation, and post-incident learning",
+  "template": "system-left-to-right",
+  "nodes": [
+    {"id": "telemetry", "label": "Telemetry Stream", "kind": "queue", "detail": ["logs", "metrics", "traces"], "lane": 0, "rank": 0},
+    {"id": "detector", "label": "Detector Rules", "kind": "worker", "detail": ["burn rate", "anomaly"], "lane": 0, "rank": 1},
+    {"id": "pager", "label": "Pager Service", "kind": "external", "detail": ["dedupe", "escalate"], "lane": 0, "rank": 2},
+    {"id": "warroom", "label": "War Room", "kind": "client", "detail": ["incident lead", "timeline"], "lane": 0, "rank": 3},
+    {"id": "mitigation", "label": "Mitigation Runner", "kind": "worker", "detail": ["feature flag", "rollback"], "lane": 0, "rank": 4},
+    {"id": "status", "label": "Status Page", "kind": "external", "detail": ["customer comms"], "lane": 1, "rank": 3},
+    {"id": "postmortem", "label": "Postmortem Store", "kind": "db", "detail": ["actions", "owners", "dates"], "lane": 1, "rank": 5}
+  ],
+  "edges": [
+    {"from": "telemetry", "to": "detector", "label": "events", "kind": "async", "route": "direct"},
+    {"from": "detector", "to": "pager", "label": "grouped alert", "kind": "async", "route": "direct"},
+    {"from": "pager", "to": "warroom", "label": "page owner", "kind": "sync", "route": "direct"},
+    {"from": "warroom", "to": "mitigation", "label": "run playbook", "kind": "sync", "route": "direct"},
+    {"from": "warroom", "to": "status", "label": "publish update", "kind": "sync", "route": "bottom"},
+    {"from": "mitigation", "to": "detector", "label": "watch recovery", "kind": "retry", "route": "top"},
+    {"from": "warroom", "to": "postmortem", "label": "record timeline", "kind": "async", "route": "bottom"},
+    {"from": "postmortem", "to": "detector", "label": "tune rule", "kind": "failure", "route": "bottom"}
+  ],
+  "annotations": [
+    {
+      "title": "Question",
+      "lines": ["Does ownership live in pager or incident tooling?", "Are customer updates gated by severity?"],
+      "lane": 2,
+      "rank": 1
+    }
+  ],
+  "assumptions": ["Detector rules already receive normalized telemetry"],
+  "notImplied": ["No vendor-specific on-call workflow"]
+}

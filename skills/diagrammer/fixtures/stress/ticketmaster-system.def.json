@@ -1,0 +1,61 @@
+{
+  "title": "Ticketmaster-Style Onsale System",
+  "subtitle": "Traffic shaping, seat holds, checkout, payment, and ticket issuance",
+  "template": "system-left-to-right",
+  "nodes": [
+    {"id": "fans", "label": "Fans", "kind": "client", "detail": ["web + mobile", "millions at onsale"], "lane": 0, "rank": 0},
+    {"id": "edge", "label": "CDN / WAF", "kind": "external", "detail": ["bot filtering", "static assets"], "lane": 0, "rank": 1},
+    {"id": "waiting", "label": "Waiting Room", "kind": "queue", "detail": ["rate limits", "signed position token"], "lane": 0, "rank": 2},
+    {"id": "gateway", "label": "API Gateway", "kind": "api", "detail": ["auth", "request shaping"], "lane": 0, "rank": 3},
+    {"id": "inventory", "label": "Inventory Service", "kind": "worker", "detail": ["seat map", "hold allocation"], "lane": 0, "rank": 4},
+    {"id": "checkout", "label": "Checkout Service", "kind": "api", "detail": ["cart", "idempotency key"], "lane": 0, "rank": 5},
+    {"id": "payment", "label": "Payment Provider", "kind": "external", "detail": ["authorize", "capture"], "lane": 0, "rank": 6},
+    {"id": "catalog", "label": "Event Catalog DB", "kind": "db", "detail": ["events", "pricing", "availability view"], "lane": 1, "rank": 1},
+    {"id": "token", "label": "Token / Queue Store", "kind": "db", "detail": ["position", "TTL", "admission state"], "lane": 1, "rank": 2},
+    {"id": "holds", "label": "Seat Holds DB", "kind": "db", "detail": ["seat_id", "expires_at", "hold_token"], "lane": 1, "rank": 4},
+    {"id": "orders", "label": "Orders DB", "kind": "db", "detail": ["order", "payment status", "audit trail"], "lane": 1, "rank": 5},
+    {"id": "events", "label": "Event Bus", "kind": "queue", "detail": ["paid order", "hold expired", "refund"], "lane": 2, "rank": 5},
+    {"id": "issuer", "label": "Ticket Issuer", "kind": "worker", "detail": ["barcode", "wallet pass", "delivery"], "lane": 2, "rank": 6},
+    {"id": "tickets", "label": "Tickets DB", "kind": "db", "detail": ["ticket_id", "owner", "status"], "lane": 2, "rank": 7},
+    {"id": "fraud", "label": "Fraud / Risk", "kind": "worker", "detail": ["device score", "velocity checks"], "lane": 2, "rank": 3}
+  ],
+  "edges": [
+    {"from": "fans", "to": "edge", "label": "enter onsale", "kind": "sync", "route": "direct"},
+    {"from": "edge", "to": "waiting", "label": "challenge + admit", "kind": "sync", "route": "direct"},
+    {"from": "waiting", "to": "token", "label": "store position", "kind": "sync", "route": "bottom"},
+    {"from": "waiting", "to": "gateway", "label": "signed admission", "kind": "sync", "route": "direct"},
+    {"from": "gateway", "to": "catalog", "label": "read event", "kind": "sync", "route": "bottom"},
+    {"from": "gateway", "to": "fraud", "label": "risk check", "kind": "sync", "route": "bottom"},
+    {"from": "gateway", "to": "inventory", "label": "find seats", "kind": "sync", "route": "direct"},
+    {"from": "inventory", "to": "holds", "label": "reserve hold", "kind": "sync", "route": "bottom"},
+    {"from": "inventory", "to": "checkout", "label": "hold token", "kind": "sync", "route": "direct"},
+    {"from": "checkout", "to": "orders", "label": "create pending order", "kind": "sync", "route": "bottom"},
+    {"from": "checkout", "to": "payment", "label": "authorize payment", "kind": "sync", "route": "direct"},
+    {"from": "payment", "to": "checkout", "label": "timeout retry", "kind": "retry", "route": "top"},
+    {"from": "checkout", "to": "events", "label": "publish paid order", "kind": "async", "route": "bottom"},
+    {"from": "events", "to": "issuer", "label": "issue ticket", "kind": "async", "route": "direct"},
+    {"from": "issuer", "to": "tickets", "label": "persist ticket", "kind": "sync", "route": "direct"},
+    {"from": "events", "to": "holds", "label": "release expired hold", "kind": "failure", "route": "top"}
+  ],
+  "annotations": [
+    {
+      "title": "Key pressure points",
+      "lines": [
+        "Queue admission protects inventory from thundering herd traffic",
+        "Seat holds need strict TTL and idempotent checkout writes",
+        "Payment success should publish durable events before ticket issuance"
+      ],
+      "lane": 3,
+      "rank": 0
+    }
+  ],
+  "assumptions": [
+    "This is a compact high-level architecture, not full multi-region consistency design",
+    "Read-heavy catalog traffic is cacheable; seat holds are strongly coordinated per event"
+  ],
+  "notImplied": [
+    "No resale marketplace",
+    "No venue access-control scanning path",
+    "No detailed fraud model internals"
+  ]
+}
