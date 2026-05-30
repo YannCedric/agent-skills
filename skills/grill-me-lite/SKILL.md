@@ -44,16 +44,29 @@ Do not use for obvious bug fixes, routine commands, tiny reversible edits, or ca
 7. Stop grilling when the remaining uncertainty no longer changes the plan materially.
 8. End with a compact aligned plan: decisions, assumptions, small testable tasks, quality gates, and any explicit open questions.
 
-## Question style
+## Question contract
 
-Keep questions concrete and low-friction:
+Each grill question should clarify one decision that can materially change the plan. Use an industry-standard decision shape: context, options, recommendation, consequence, and confidence.
 
-- Ask: "Who is the first user we are optimizing for: admin, manager, or end customer? My default: manager, because they feel the workflow pain daily and can judge usefulness quickly."
-- Ask: "Should v1 optimize for speed, correctness, or learning? My default: learning, because the riskiest assumption is still whether users want this flow."
-- Ask: "Is this a reversible UI change or a data-contract change? My default: data-contract change, because downstream compatibility will shape the rollout."
+- Ask: "Which first user should v1 optimize for: admin, manager, or end customer? My default: manager, because they feel the workflow pain daily and can judge usefulness quickly. Consequence: we bias workflows toward repeated operational use instead of account-level reporting. Confidence: medium; I would change this if buyer interviews show admins are the adoption bottleneck."
+- Ask: "Should v1 optimize for speed, correctness, or learning? My default: learning, because the riskiest assumption is still whether users want this flow. Consequence: we ship the smallest instrumented path before investing in polish."
+- Ask: "Is this a reversible UI change or a data-contract change? My default: data-contract change, because downstream compatibility will shape rollout and testing. Consequence: we need migration and rollback gates before visual polish."
 - Avoid: "Tell me everything about the target audience."
 
 Prefer multiple choice when useful, but allow the user to override.
+
+## Highest-leverage question rule
+
+Ask the question whose answer most changes the next action. Prefer questions that expose:
+
+- The primary user or decision owner.
+- The job-to-be-done and success metric.
+- Hard constraints: time, budget, compliance, data contracts, platform limits.
+- Reversibility and blast radius.
+- The riskiest assumption and the smallest useful validation.
+- Rollout, migration, or rollback requirements.
+
+Defer questions that only tune wording, styling, or implementation details until the strategic uncertainty is resolved.
 
 ## Recommended-answer rule
 
@@ -62,6 +75,7 @@ Never make the user do blank-page strategy work. Each question should include:
 - the question
 - your recommended answer/default
 - the consequence of choosing it
+- your confidence level or what evidence would change your mind
 
 If you have low confidence, say so and explain what evidence would change your mind.
 
@@ -85,7 +99,8 @@ Grill mode. I’ll ask one question at a time and give my default.
 
 Q1: ...?
 My default: ...
-Why it matters: ...
+Consequence: ...
+Confidence: ...
 ```
 
 ## Completion shape

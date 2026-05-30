@@ -12,7 +12,7 @@ These examples are synthetic patterns, not chat history.
 
 ## Example Questions
 
-Use one question at a time. Include a default and the consequence.
+Use one question at a time. Include a default, consequence, and confidence.
 
 ### Product Scope
 
@@ -22,6 +22,8 @@ Default: manager.
 
 Consequence: choosing manager keeps the workflow focused on daily operational pain instead of broad account-level reporting.
 
+Confidence: medium; switch to admin if procurement or permissions are the adoption bottleneck.
+
 ### UX Direction
 
 Q: Should the first screen optimize for creation, review, or monitoring?
@@ -29,6 +31,8 @@ Q: Should the first screen optimize for creation, review, or monitoring?
 Default: review.
 
 Consequence: review-first makes the product useful even when automation is imperfect.
+
+Confidence: medium; switch to creation-first if empty-state activation is the biggest drop-off.
 
 ### Architecture
 
@@ -38,6 +42,8 @@ Default: data-contract change.
 
 Consequence: if downstream consumers depend on it, the rollout needs compatibility and migration gates.
 
+Confidence: high if APIs, persisted fields, or exported formats change.
+
 ### Task Planning
 
 Q: Should we split this by user journey, technical layer, or risk?
@@ -45,6 +51,8 @@ Q: Should we split this by user journey, technical layer, or risk?
 Default: risk.
 
 Consequence: risk-first lets us validate the riskiest assumption before polishing low-risk UI.
+
+Confidence: high when scope is still fuzzy or external dependencies are unknown.
 
 ## Output Shape
 
