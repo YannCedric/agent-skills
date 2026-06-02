@@ -1,0 +1,13 @@
+{
+  "title": "Scenario C: Queue Release Pair",
+  "subtitle": "Queue releases a hold while the DB feeds issuance",
+  "template": "system-left-to-right",
+  "nodes": [
+    {"id": "holds", "label": "Seat Holds DB", "kind": "db", "detail": ["seat_id", "expires_at"], "lane": 0, "rank": 0},
+    {"id": "issuer", "label": "Issuance Queue", "kind": "queue", "detail": ["paid orders", "mint tickets"], "lane": 0, "rank": 1}
+  ],
+  "edges": [
+    {"from": "holds", "to": "issuer", "label": "reserve hold", "kind": "sync", "route": "direct"},
+    {"from": "issuer", "to": "holds", "label": "release hold", "kind": "failure", "route": "bottom"}
+  ]
+}

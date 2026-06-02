@@ -1,0 +1,198 @@
+{
+  "title": "Semantic Shapes Showcase",
+  "subtitle": "Shape registry, fan-in, review gates, queueing, and source-of-truth updates",
+  "template": "system-left-to-right",
+  "nodes": [
+    {
+      "id": "customer",
+      "label": "Customer",
+      "kind": "client",
+      "detail": ["places order"],
+      "lane": 0,
+      "rank": 0
+    },
+    {
+      "id": "order_pdf",
+      "label": "Order PDF",
+      "kind": "document",
+      "detail": ["source file"],
+      "lane": 1,
+      "rank": 0
+    },
+    {
+      "id": "intake",
+      "label": "Intake API",
+      "kind": "api",
+      "detail": ["parse", "validate"],
+      "lane": 0,
+      "rank": 1
+    },
+    {
+      "id": "risk",
+      "label": "Risk Policy",
+      "kind": "risk",
+      "detail": ["rules", "guardrails"],
+      "lane": 2,
+      "rank": 2
+    },
+    {
+      "id": "approval",
+      "label": "Approval Gate",
+      "kind": "approval",
+      "detail": [],
+      "lane": 0,
+      "rank": 2
+    },
+    {
+      "id": "provider",
+      "label": "Payment Provider",
+      "kind": "external",
+      "detail": ["authorize"],
+      "lane": 0,
+      "rank": 3
+    },
+    {
+      "id": "events",
+      "label": "Review Events",
+      "kind": "queue",
+      "detail": ["approved", "failed"],
+      "lane": 1,
+      "rank": 3
+    },
+    {
+      "id": "worker",
+      "label": "Review Worker",
+      "kind": "worker",
+      "detail": ["claim event", "repair gaps"],
+      "lane": 1,
+      "rank": 4
+    },
+    {
+      "id": "operator",
+      "label": "Operator",
+      "kind": "operator",
+      "detail": ["manual decision"],
+      "lane": 0,
+      "rank": 5
+    },
+    {
+      "id": "orders",
+      "label": "Orders DB",
+      "kind": "db",
+      "detail": ["status", "audit_log", "attempts"],
+      "lane": 1,
+      "rank": 5
+    }
+  ],
+  "edges": [
+    {
+      "from": "customer",
+      "to": "intake",
+      "label": "submit order",
+      "kind": "sync",
+      "route": "direct"
+    },
+    {
+      "from": "order_pdf",
+      "to": "intake",
+      "label": "upload file",
+      "kind": "sync",
+      "route": "top"
+    },
+    {
+      "from": "intake",
+      "to": "risk",
+      "label": "screen order",
+      "kind": "sync",
+      "route": "bottom",
+      "targetPort": "left"
+    },
+    {
+      "from": "intake",
+      "to": "approval",
+      "label": "prepare review",
+      "kind": "sync",
+      "route": "direct"
+    },
+    {
+      "from": "risk",
+      "to": "events",
+      "label": "risk result",
+      "kind": "async",
+      "route": "direct"
+    },
+    {
+      "from": "approval",
+      "to": "events",
+      "label": "review needed",
+      "kind": "async",
+      "route": "top"
+    },
+    {
+      "from": "provider",
+      "to": "events",
+      "label": "payment event",
+      "kind": "async",
+      "route": "bottom"
+    },
+    {
+      "from": "approval",
+      "to": "provider",
+      "label": "authorize",
+      "kind": "sync",
+      "route": "direct"
+    },
+    {
+      "from": "events",
+      "to": "worker",
+      "label": "claim event",
+      "kind": "async",
+      "route": "direct"
+    },
+    {
+      "from": "worker",
+      "to": "operator",
+      "label": "request decision",
+      "kind": "sync",
+      "route": "top"
+    },
+    {
+      "from": "worker",
+      "to": "orders",
+      "label": "save",
+      "kind": "sync",
+      "route": "direct",
+      "sourcePort": "right",
+      "targetPort": "left"
+    },
+    {
+      "from": "orders",
+      "to": "worker",
+      "label": "retry",
+      "kind": "retry",
+      "route": "top",
+      "sourcePort": "left",
+      "targetPort": "bottom"
+    }
+  ],
+  "annotations": [
+    {
+      "title": "What this shows",
+      "lines": [
+        "semantic node shapes from the registry",
+        "balanced fan-in to a queue",
+        "reciprocal retry lanes with separated labels"
+      ],
+      "lane": 3,
+      "rank": 0
+    }
+  ],
+  "assumptions": [
+    "External payment provider emits normalized events",
+    "Operator review is represented as a human actor, not a service"
+  ],
+  "notImplied": [
+    "No exact provider API contract",
+    "No production ownership boundary"
+  ]
+}

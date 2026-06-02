@@ -1,0 +1,20 @@
+{
+  "title": "Webhook Retry Path",
+  "subtitle": "Failure path with retry and dead-letter handling",
+  "template": "system-left-to-right",
+  "nodes": [
+    {"id": "sender", "label": "Webhook Sender", "kind": "external", "rank": 0, "lane": 0},
+    {"id": "receiver", "label": "Receiver API", "kind": "api", "rank": 1, "lane": 0},
+    {"id": "queue", "label": "Work Queue", "kind": "queue", "rank": 2, "lane": 0},
+    {"id": "worker", "label": "Processor", "kind": "worker", "rank": 3, "lane": 0},
+    {"id": "dead", "label": "Dead Letter Queue", "kind": "queue", "rank": 3, "lane": 1}
+  ],
+  "edges": [
+    {"from": "sender", "to": "receiver", "label": "send event", "kind": "sync"},
+    {"from": "receiver", "to": "queue", "label": "enqueue", "kind": "async"},
+    {"from": "queue", "to": "worker", "label": "process", "kind": "async"},
+    {"from": "worker", "to": "queue", "label": "retry", "kind": "retry", "route": "top"},
+    {"from": "worker", "to": "dead", "label": "exhausted", "kind": "failure", "route": "bottom"}
+  ],
+  "assumptions": ["Retries are bounded"]
+}

@@ -1,0 +1,171 @@
+{
+  "title": "Order Payment Reconciliation",
+  "subtitle": "Fresh semantic-shape example with minimal routing hints",
+  "template": "system-left-to-right",
+  "nodes": [
+    {
+      "id": "customer",
+      "label": "Customer",
+      "kind": "client",
+      "detail": ["places order"],
+      "lane": 0,
+      "rank": 0
+    },
+    {
+      "id": "checkout",
+      "label": "Checkout API",
+      "kind": "api",
+      "detail": ["creates payment intent"],
+      "lane": 0,
+      "rank": 1
+    },
+    {
+      "id": "provider",
+      "label": "Payment Provider",
+      "kind": "external",
+      "detail": ["authorizes card"],
+      "lane": 0,
+      "rank": 2
+    },
+    {
+      "id": "webhook",
+      "label": "Webhook Event",
+      "kind": "document",
+      "detail": ["provider payload"],
+      "lane": 1,
+      "rank": 2
+    },
+    {
+      "id": "events",
+      "label": "Payment Events Queue",
+      "kind": "queue",
+      "detail": ["paid", "failed"],
+      "lane": 1,
+      "rank": 3
+    },
+    {
+      "id": "worker",
+      "label": "Reconciler Worker",
+      "kind": "worker",
+      "detail": ["claim event", "match order"],
+      "lane": 1,
+      "rank": 4
+    },
+    {
+      "id": "orders",
+      "label": "Orders DB",
+      "kind": "db",
+      "detail": ["payment_status", "receipt_id", "attempts"],
+      "lane": 1,
+      "rank": 5
+    },
+    {
+      "id": "risk",
+      "label": "Risk Policy",
+      "kind": "risk",
+      "detail": ["fraud checks"],
+      "lane": 2,
+      "rank": 2
+    },
+    {
+      "id": "operator",
+      "label": "Support Operator",
+      "kind": "operator",
+      "detail": ["manual review"],
+      "lane": 0,
+      "rank": 5
+    }
+  ],
+  "edges": [
+    {
+      "from": "customer",
+      "to": "checkout",
+      "label": "submit order",
+      "kind": "sync",
+      "route": "direct"
+    },
+    {
+      "from": "checkout",
+      "to": "provider",
+      "label": "authorize payment",
+      "kind": "sync",
+      "route": "direct"
+    },
+    {
+      "from": "checkout",
+      "to": "risk",
+      "label": "screen order",
+      "kind": "sync",
+      "route": "bottom"
+    },
+    {
+      "from": "provider",
+      "to": "webhook",
+      "label": "emit webhook",
+      "kind": "async",
+      "route": "bottom"
+    },
+    {
+      "from": "webhook",
+      "to": "events",
+      "label": "normalize event",
+      "kind": "async",
+      "route": "direct"
+    },
+    {
+      "from": "risk",
+      "to": "events",
+      "label": "risk result",
+      "kind": "async",
+      "route": "direct"
+    },
+    {
+      "from": "events",
+      "to": "worker",
+      "label": "claim event",
+      "kind": "async",
+      "route": "direct"
+    },
+    {
+      "from": "worker",
+      "to": "orders",
+      "label": "update status",
+      "kind": "sync",
+      "route": "direct"
+    },
+    {
+      "from": "orders",
+      "to": "worker",
+      "label": "retry",
+      "kind": "retry",
+      "route": "top"
+    },
+    {
+      "from": "worker",
+      "to": "operator",
+      "label": "exception review",
+      "kind": "sync",
+      "route": "top"
+    }
+  ],
+  "annotations": [
+    {
+      "title": "Prompt-style constraints",
+      "lines": [
+        "node kinds drive the shape registry",
+        "no explicit sourcePort or targetPort hints",
+        "review gate must catch confusing routes"
+      ],
+      "lane": 3,
+      "rank": 0
+    }
+  ],
+  "assumptions": [
+    "Payment provider sends normalized webhook payloads",
+    "Reconciler owns status updates but not payment authorization"
+  ],
+  "notImplied": [
+    "No exact payment API contract",
+    "No production ownership boundary"
+  ]
+}

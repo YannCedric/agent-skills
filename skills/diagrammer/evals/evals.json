@@ -1,0 +1,41 @@
+{
+  "skill_name": "diagrammer",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Create an architecture diagram for a generic order-to-POS workflow: upload order, review details, operator approval, POS send, and sent/failed state. Show human approval and avoid implying fully automated approval.",
+      "expected_output": "HTML source, rendered PNG, concise notes, clear human approval boundary, and no false implication that approval is fully automated.",
+      "files": [],
+      "assertions": [
+        "Creates an HTML diagram source file",
+        "Creates a rendered PNG export",
+        "Includes assumptions or not-implied notes",
+        "Shows operator approval as a distinct human step"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Create a system diagram for a SaaS app with browser client, API, auth provider, payment provider, relational DB, webhook worker, and analytics destination. Show trust boundaries and source of truth.",
+      "expected_output": "Readable system diagram with external systems outside the app boundary, database marked as source of truth, and clear data/control flow.",
+      "files": [],
+      "assertions": [
+        "Creates an HTML diagram source file",
+        "Creates a rendered PNG export",
+        "Shows at least one trust boundary",
+        "Marks the relational DB as source of truth"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Create a failure/retry path diagram for an async integration that receives webhooks, validates payloads, queues jobs, retries failed sends, dead-letters exhausted jobs, and alerts an operator.",
+      "expected_output": "Failure/retry diagram with queue, retry path, dead-letter state, operator alert, and clear distinction between happy path and failure path.",
+      "files": [],
+      "assertions": [
+        "Creates an HTML diagram source file",
+        "Creates a rendered PNG export",
+        "Shows retry and dead-letter paths",
+        "Shows operator alert or intervention"
+      ]
+    }
+  ]
+}

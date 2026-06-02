@@ -1,0 +1,13 @@
+{
+  "title": "Scenario B: Offset DB Retry",
+  "subtitle": "Forward write goes down; retry returns to the worker",
+  "template": "system-left-to-right",
+  "nodes": [
+    {"id": "worker", "label": "Worker", "kind": "worker", "detail": ["repair gaps"], "lane": 0, "rank": 0},
+    {"id": "orders", "label": "Orders DB", "kind": "db", "detail": ["payment_status", "attempts"], "lane": 1, "rank": 1}
+  ],
+  "edges": [
+    {"from": "worker", "to": "orders", "label": "update status", "kind": "sync", "route": "bottom"},
+    {"from": "orders", "to": "worker", "label": "retry mismatch", "kind": "retry", "route": "top"}
+  ]
+}

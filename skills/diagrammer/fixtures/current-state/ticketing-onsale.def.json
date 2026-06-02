@@ -1,0 +1,46 @@
+{
+  "title": "Ticketing Onsale Purchase Path",
+  "subtitle": "Waiting room to seat hold, payment, and ticket issuance",
+  "template": "system-left-to-right",
+  "nodes": [
+    {"id": "fans", "label": "Fans", "kind": "client", "detail": ["join onsale"], "lane": 0, "rank": 0},
+    {"id": "waiting", "label": "Waiting Room Queue", "kind": "queue", "detail": ["rate limit", "position token"], "lane": 0, "rank": 1},
+    {"id": "inventory", "label": "Inventory Service", "kind": "worker", "detail": ["seat map", "hold seats"], "lane": 0, "rank": 2},
+    {"id": "checkout", "label": "Checkout API", "kind": "api", "detail": ["cart", "idempotency"], "lane": 0, "rank": 3},
+    {"id": "payment", "label": "Payment Provider", "kind": "external", "detail": ["authorize", "capture"], "lane": 0, "rank": 4},
+    {"id": "holds", "label": "Seat Holds DB", "kind": "db", "detail": ["seat_id", "expires_at", "hold_token"], "lane": 1, "rank": 2},
+    {"id": "issuer", "label": "Issuance Queue", "kind": "queue", "detail": ["paid orders", "mint tickets"], "lane": 1, "rank": 4},
+    {"id": "tickets", "label": "Tickets DB", "kind": "db", "detail": ["ticket_id", "barcode", "owner", "status"], "lane": 1, "rank": 5}
+  ],
+  "edges": [
+    {"from": "fans", "to": "waiting", "label": "request access", "kind": "sync", "route": "direct"},
+    {"from": "waiting", "to": "inventory", "label": "admit buyer", "kind": "sync", "route": "direct"},
+    {"from": "inventory", "to": "holds", "label": "reserve hold", "kind": "sync", "route": "bottom"},
+    {"from": "inventory", "to": "checkout", "label": "hold token", "kind": "sync", "route": "direct"},
+    {"from": "checkout", "to": "payment", "label": "authorize", "kind": "sync", "route": "direct"},
+    {"from": "payment", "to": "issuer", "label": "paid order", "kind": "async", "route": "bottom"},
+    {"from": "issuer", "to": "tickets", "label": "issue ticket", "kind": "sync", "route": "direct"},
+    {"from": "payment", "to": "checkout", "label": "retry timeout", "kind": "retry", "route": "top"},
+    {"from": "issuer", "to": "holds", "label": "release hold", "kind": "failure", "route": "bottom"}
+  ],
+  "annotations": [
+    {
+      "title": "Discussion points",
+      "lines": [
+        "Waiting room protects inventory during spikes",
+        "Seat holds expire quickly",
+        "Payment and issuance use idempotent events"
+      ],
+      "lane": 2,
+      "rank": 0
+    }
+  ],
+  "assumptions": [
+    "Fraud checks are part of admission for this compact view",
+    "Ticket issuance is async after payment authorization"
+  ],
+  "notImplied": [
+    "No resale marketplace",
+    "No multi-region inventory consensus detail"
+  ]
+}

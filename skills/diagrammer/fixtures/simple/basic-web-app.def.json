@@ -1,0 +1,19 @@
+{
+  "title": "Basic Web App",
+  "subtitle": "Small system diagram with one queue and one datastore",
+  "template": "system-left-to-right",
+  "nodes": [
+    {"id": "browser", "label": "Browser", "kind": "client", "rank": 0, "lane": 0},
+    {"id": "api", "label": "API", "kind": "api", "rank": 1, "lane": 0},
+    {"id": "queue", "label": "Job Queue", "kind": "queue", "rank": 2, "lane": 0},
+    {"id": "worker", "label": "Worker", "kind": "worker", "rank": 3, "lane": 0},
+    {"id": "db", "label": "Database", "kind": "db", "rank": 3, "lane": 1}
+  ],
+  "edges": [
+    {"from": "browser", "to": "api", "label": "request", "kind": "sync"},
+    {"from": "api", "to": "queue", "label": "enqueue job", "kind": "async"},
+    {"from": "queue", "to": "worker", "label": "claim job", "kind": "async"},
+    {"from": "worker", "to": "db", "label": "write result", "kind": "sync", "route": "bottom"}
+  ],
+  "notImplied": ["No deployment topology"]
+}

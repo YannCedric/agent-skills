@@ -1,0 +1,140 @@
+{
+  "title": "Order Intake Reliability Path",
+  "subtitle": "Mixed shape and arrow stress test for diagrammer",
+  "template": "system-left-to-right",
+  "nodes": [
+    {
+      "id": "client",
+      "label": "Customer App",
+      "kind": "client",
+      "detail": ["submits order"],
+      "lane": 0,
+      "rank": 0
+    },
+    {
+      "id": "api",
+      "label": "Order API",
+      "kind": "api",
+      "detail": ["auth", "validation"],
+      "lane": 0,
+      "rank": 1
+    },
+    {
+      "id": "orders",
+      "label": "Orders DB",
+      "kind": "db",
+      "detail": ["orders", "status", "attempts"],
+      "lane": 1,
+      "rank": 2
+    },
+    {
+      "id": "queue",
+      "label": "Review Queue",
+      "kind": "queue",
+      "detail": ["pending", "ready"],
+      "lane": 0,
+      "rank": 2
+    },
+    {
+      "id": "worker",
+      "label": "Fulfillment Worker",
+      "kind": "worker",
+      "detail": ["claims job", "updates status"],
+      "lane": 0,
+      "rank": 3
+    },
+    {
+      "id": "pos",
+      "label": "External POS",
+      "kind": "external",
+      "detail": ["third-party API"],
+      "lane": 0,
+      "rank": 4
+    },
+    {
+      "id": "dead",
+      "label": "Dead Letter Queue",
+      "kind": "queue",
+      "detail": ["manual review"],
+      "lane": 1,
+      "rank": 4
+    }
+  ],
+  "edges": [
+    {
+      "from": "client",
+      "to": "api",
+      "label": "create order",
+      "kind": "sync",
+      "route": "direct"
+    },
+    {
+      "from": "api",
+      "to": "orders",
+      "label": "persist draft",
+      "kind": "sync",
+      "route": "bottom"
+    },
+    {
+      "from": "api",
+      "to": "queue",
+      "label": "enqueue review message",
+      "kind": "async",
+      "route": "direct"
+    },
+    {
+      "from": "queue",
+      "to": "worker",
+      "label": "claim message",
+      "kind": "async",
+      "route": "direct"
+    },
+    {
+      "from": "worker",
+      "to": "pos",
+      "label": "submit to external POS",
+      "kind": "sync",
+      "route": "direct"
+    },
+    {
+      "from": "pos",
+      "to": "worker",
+      "label": "retry later",
+      "kind": "retry",
+      "route": "top"
+    },
+    {
+      "from": "worker",
+      "to": "orders",
+      "label": "update status",
+      "kind": "sync",
+      "route": "bottom"
+    },
+    {
+      "from": "worker",
+      "to": "dead",
+      "label": "attempts exhausted",
+      "kind": "failure",
+      "route": "bottom"
+    }
+  ],
+  "annotations": [
+    {
+      "title": "What this tests",
+      "lines": [
+        "client/api/service/db/queue/external shapes",
+        "sync, async, retry, and failure arrows",
+        "short and wrapped inline connector labels"
+      ],
+      "lane": 2,
+      "rank": 1
+    }
+  ],
+  "assumptions": [
+    "Worker owns retries and terminal failure routing"
+  ],
+  "notImplied": [
+    "No exactly-once guarantee",
+    "No external POS ownership boundary"
+  ]
+}

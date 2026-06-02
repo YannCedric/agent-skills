@@ -1,0 +1,168 @@
+{
+  "title": "Payment Webhook Reconciliation",
+  "subtitle": "Fan-out, fan-in, retry, queue, and database routing stress test",
+  "template": "system-left-to-right",
+  "nodes": [
+    {
+      "id": "checkout",
+      "label": "Checkout API",
+      "kind": "api",
+      "detail": ["idempotency key"],
+      "lane": 1,
+      "rank": 0
+    },
+    {
+      "id": "payment",
+      "label": "Payment Provider",
+      "kind": "external",
+      "detail": ["authorize", "webhook"],
+      "lane": 0,
+      "rank": 1
+    },
+    {
+      "id": "ledger",
+      "label": "Ledger Service",
+      "kind": "service",
+      "detail": ["capture state"],
+      "lane": 1,
+      "rank": 1
+    },
+    {
+      "id": "risk",
+      "label": "Risk Review",
+      "kind": "service",
+      "detail": ["manual hold"],
+      "lane": 2,
+      "rank": 1
+    },
+    {
+      "id": "events",
+      "label": "Payment Events",
+      "kind": "queue",
+      "detail": ["authorized", "failed"],
+      "lane": 1,
+      "rank": 2
+    },
+    {
+      "id": "reconciler",
+      "label": "Reconciler Worker",
+      "kind": "worker",
+      "detail": ["match provider", "repair gaps"],
+      "lane": 1,
+      "rank": 3
+    },
+    {
+      "id": "orders",
+      "label": "Orders DB",
+      "kind": "db",
+      "detail": ["payment_status", "provider_ref", "attempts"],
+      "lane": 2,
+      "rank": 4
+    },
+    {
+      "id": "notify",
+      "label": "Notify Customer",
+      "kind": "service",
+      "lane": 0,
+      "rank": 4
+    }
+  ],
+  "edges": [
+    {
+      "from": "checkout",
+      "to": "payment",
+      "label": "authorize payment",
+      "kind": "sync",
+      "route": "top"
+    },
+    {
+      "from": "checkout",
+      "to": "ledger",
+      "label": "create ledger entry",
+      "kind": "sync",
+      "route": "direct"
+    },
+    {
+      "from": "checkout",
+      "to": "risk",
+      "label": "flag suspicious order",
+      "kind": "sync",
+      "route": "bottom"
+    },
+    {
+      "from": "payment",
+      "to": "events",
+      "label": "provider webhook",
+      "kind": "async",
+      "route": "bottom"
+    },
+    {
+      "from": "ledger",
+      "to": "events",
+      "label": "publish ledger update",
+      "kind": "async",
+      "route": "direct"
+    },
+    {
+      "from": "risk",
+      "to": "events",
+      "label": "release hold",
+      "kind": "async",
+      "route": "top"
+    },
+    {
+      "from": "events",
+      "to": "reconciler",
+      "label": "consume event",
+      "kind": "async",
+      "route": "direct"
+    },
+    {
+      "from": "reconciler",
+      "to": "orders",
+      "label": "update payment status",
+      "kind": "sync",
+      "route": "bottom",
+      "sourcePort": "bottom",
+      "targetPort": "left",
+      "labelPosition": "above"
+    },
+    {
+      "from": "reconciler",
+      "to": "notify",
+      "label": "send receipt",
+      "kind": "sync",
+      "route": "top"
+    },
+    {
+      "from": "orders",
+      "to": "reconciler",
+      "label": "retry mismatch",
+      "kind": "retry",
+      "route": "top",
+      "sourcePort": "left",
+      "targetPort": "bottom",
+      "labelPosition": "below"
+    }
+  ],
+  "annotations": [
+    {
+      "title": "What this tests",
+      "lines": [
+        "checkout fans out to provider, ledger, and risk paths",
+        "provider, ledger, and risk paths converge into one queue",
+        "worker writes to DB, notifies customer, and handles retry"
+      ],
+      "lane": 3,
+      "rank": 0
+    }
+  ],
+  "assumptions": [
+    "Provider callbacks are normalized through the payment events queue",
+    "Reconciler owns repair and retry behavior"
+  ],
+  "notImplied": [
+    "No exact payment-provider API contract is implied",
+    "No exactly-once event delivery guarantee is shown"
+  ]
+}

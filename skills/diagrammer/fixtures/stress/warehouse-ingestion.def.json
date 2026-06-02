@@ -1,0 +1,35 @@
+{
+  "title": "Warehouse Ingestion Pipeline",
+  "subtitle": "Batch imports with validation, quarantine, enrichment, and serving",
+  "template": "system-left-to-right",
+  "nodes": [
+    {"id": "partners", "label": "Partner Feeds", "kind": "external", "detail": ["CSV", "SFTP", "API"], "lane": 0, "rank": 0},
+    {"id": "landing", "label": "Landing Bucket", "kind": "db", "detail": ["raw files", "checksums"], "lane": 0, "rank": 1},
+    {"id": "validator", "label": "Schema Validator", "kind": "worker", "detail": ["contracts", "row errors"], "lane": 0, "rank": 2},
+    {"id": "quarantine", "label": "Quarantine Queue", "kind": "queue", "detail": ["bad batches", "owner review"], "lane": 1, "rank": 2},
+    {"id": "enrich", "label": "Enrichment Jobs", "kind": "worker", "detail": ["lookup tables", "dedupe"], "lane": 0, "rank": 3},
+    {"id": "warehouse", "label": "Warehouse Tables", "kind": "db", "detail": ["facts", "dimensions"], "lane": 0, "rank": 4},
+    {"id": "semantic", "label": "Semantic API", "kind": "api", "detail": ["metrics", "filters"], "lane": 0, "rank": 5},
+    {"id": "dashboards", "label": "Dashboards", "kind": "client", "detail": ["ops", "finance"], "lane": 0, "rank": 6}
+  ],
+  "edges": [
+    {"from": "partners", "to": "landing", "label": "drop batch", "kind": "async", "route": "direct"},
+    {"from": "landing", "to": "validator", "label": "new object", "kind": "async", "route": "direct"},
+    {"from": "validator", "to": "quarantine", "label": "invalid rows", "kind": "failure", "route": "bottom"},
+    {"from": "validator", "to": "enrich", "label": "valid batch", "kind": "async", "route": "direct"},
+    {"from": "quarantine", "to": "validator", "label": "corrected file", "kind": "retry", "route": "top"},
+    {"from": "enrich", "to": "warehouse", "label": "load tables", "kind": "sync", "route": "direct"},
+    {"from": "warehouse", "to": "semantic", "label": "query model", "kind": "sync", "route": "direct"},
+    {"from": "semantic", "to": "dashboards", "label": "serve metrics", "kind": "sync", "route": "direct"}
+  ],
+  "annotations": [
+    {
+      "title": "Boundary",
+      "lines": ["Contracts fail before enrichment", "Quarantine owns partner feedback"],
+      "lane": 2,
+      "rank": 2
+    }
+  ],
+  "assumptions": ["Batch cadence is daily or hourly, not streaming"],
+  "notImplied": ["No ML feature store in this view"]
+}

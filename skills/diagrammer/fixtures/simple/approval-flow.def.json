@@ -1,0 +1,22 @@
+{
+  "title": "Approval Flow",
+  "subtitle": "Human decision point with recorded outcome",
+  "template": "system-left-to-right",
+  "nodes": [
+    {"id": "user", "label": "User", "kind": "client", "rank": 0, "lane": 0},
+    {"id": "request", "label": "Request", "kind": "document", "rank": 1, "lane": 0},
+    {"id": "review", "label": "Review Decision", "kind": "decision", "rank": 2, "lane": 0},
+    {"id": "approved", "label": "Approved State", "kind": "service", "rank": 3, "lane": 0},
+    {"id": "rejected", "label": "Rejected State", "kind": "service", "rank": 3, "lane": 1},
+    {"id": "audit", "label": "Audit DB", "kind": "db", "rank": 4, "lane": 1}
+  ],
+  "edges": [
+    {"from": "user", "to": "request", "label": "submit", "kind": "sync"},
+    {"from": "request", "to": "review", "label": "review", "kind": "sync"},
+    {"from": "review", "to": "approved", "label": "approve", "kind": "sync"},
+    {"from": "review", "to": "rejected", "label": "reject", "kind": "failure", "route": "bottom"},
+    {"from": "approved", "to": "audit", "label": "record", "kind": "sync"},
+    {"from": "rejected", "to": "audit", "label": "record rejection", "kind": "sync"}
+  ],
+  "notImplied": ["No automated approval"]
+}
