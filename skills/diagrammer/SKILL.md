@@ -9,6 +9,18 @@ Create useful technical diagrams as deterministic artifacts: source HTML with in
 
 Use this skill for static diagram artifacts first. Do not make video, animation, Excalidraw, Mermaid, or Structurizr the primary output unless the user asks or the situation clearly benefits from it.
 
+## Invocation Contract
+
+When the user explicitly asks to "use diagrammer" or requests an architecture/system/component/data-flow diagram, the default deliverable must be a compiler-backed artifact, not a hand-authored SVG:
+
+- Write a `diagram.def.json` semantic definition.
+- Run `diagrammer-compile` or the `scripts/compile_diagram.py` fallback.
+- Inspect `diagram.review.json`; revise until important warnings are resolved.
+- Render `diagram.html` to `diagram.png`.
+- In the response, name the source definition and review score/warning count.
+
+Only bypass the compiler when the requested diagram type cannot be represented by the compiler grammar, and say that explicitly before drawing. In that fallback case, still use the validator and renderer, and label the result as "manual SVG using diagrammer rules" rather than "diagrammer-compiled."
+
 ## Workflow
 
 1. Build a tiny brief before drawing:
@@ -25,7 +37,7 @@ Use this skill for static diagram artifacts first. Do not make video, animation,
    - mobile-share: 900x1200, narrow/mobile viewing
    - custom specs when the user provides dimensions, theme, or format constraints
 4. Read references/diagram-principles.md when selecting diagram type, visual conventions, or the QA checklist. Read references/figjam-theme.md when using the default visual theme or when the user asks for a FigJam/whiteboard look.
-5. For system/component diagrams, prefer the compiler prototype:
+5. For system/component/data-flow/integration architecture diagrams, use the compiler prototype:
    - write diagram.def.json from the brief
    - run diagrammer-compile diagram.def.json --out-dir out when the package is installed
    - fallback: python3 skills/diagrammer/scripts/compile_diagram.py diagram.def.json --out-dir out
