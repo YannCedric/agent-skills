@@ -9,6 +9,7 @@ These examples are synthetic patterns, not chat history.
 - "Think hard before turning this idea into tickets."
 - "Ask me questions before you implement the pricing page."
 - "Help me decide the MVP for this editor."
+- "Grill me and keep the decisions in the project ledger."
 
 ## Example Questions
 
@@ -71,4 +72,7 @@ Gates:
 
 Open questions:
 - ...
+
+Ledger update:
+- Updated `docs/<feature>-alignment-ledger.md`, or provide a saveable decision summary if no ledger workflow is available.
 ```

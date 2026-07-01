@@ -8,7 +8,7 @@ Small, practical workflows for coding agents. Copy or adapt them into any setup 
 
 ### Grill Me Lite
 
-`grill-me-lite` is a lightweight alignment mode for ambiguous product, UX, architecture, and implementation planning. It helps an agent inspect available evidence, ask one sharp question at a time, and avoid building from fuzzy assumptions.
+`grill-me-lite` is a lightweight alignment mode for ambiguous product, UX, architecture, and implementation planning. It helps an agent inspect available evidence, ask one sharp question at a time, preserve durable decisions, and avoid building from fuzzy assumptions.
 
 It is inspired by Matt Pocock's original [`grill-me`](https://github.com/mattpocock/skills/blob/main/skills/productivity/grill-me/SKILL.md) skill. Matt's version is intentionally tiny and sharp: interview relentlessly, walk the decision tree, ask one question at a time, give a recommended answer, and inspect the codebase before asking factual questions.
 
@@ -24,6 +24,7 @@ This version adds product-building guardrails:
 - product, UX, architecture, API, and task-planning triggers
 - recommended defaults with consequences
 - evidence-first questioning
+- durable-decision capture by default when a ledger/log workflow is available
 - a clear stopping rule
 - a final shape for decisions, assumptions, tasks, gates, and open questions
 
@@ -34,7 +35,7 @@ See:
 
 ### Alignment Ledger
 
-`alignment-ledger` keeps a lightweight decision artifact for product, UX, architecture, and strategy discussions that should survive beyond one conversation.
+`alignment-ledger` keeps a lightweight decision artifact for product, UX, architecture, and strategy discussions that should survive beyond one conversation. It also defines how agents should find the existing ledger before creating a new one.
 
 Use it for prompts like:
 
@@ -51,6 +52,12 @@ It tracks:
 - open questions
 - parked or rejected ideas
 - readiness to build
+
+It looks first for:
+
+- a `Current alignment ledger:` pointer in root `HANDOFF.md`
+- `docs/alignment-ledger.md`
+- existing `docs/*alignment-ledger*.md`, `docs/*decision-log*.md`, or `docs/*design-state*.md` files
 
 See:
 
@@ -89,11 +96,13 @@ See:
 - [Skill file](skills/diagrammer/SKILL.md)
 - [Usage examples](examples/diagrammer.md)
 
-## Combining Skills
+## Default Workflow
 
-Skills do not need to depend on each other. Combine them in the prompt when a task needs more than one workflow:
+The skills stay installable separately, but they are designed to compose by default:
 
-> Use `grill-me-lite` to clarify the plan. If the decisions need to persist, use `alignment-ledger` to keep the artifact.
+> Use `grill-me-lite` to clarify the plan. For durable project/product/architecture work, use `alignment-ledger` to find or update the decision artifact before moving into implementation.
+
+This keeps public installation flexible while making the practical workflow one loop: question, remember, then build.
 
 ## Install
 

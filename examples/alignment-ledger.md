@@ -9,6 +9,18 @@ These examples are synthetic patterns, not chat history.
 - "Update the project decision log before we build."
 - "Prune this spec so only active assumptions remain."
 - "We changed direction; reconcile this with the old plan."
+- "Resume this project and find the current decision log before we plan."
+
+## Resume Lookup
+
+When resuming a project, look for the existing ledger before creating a new one:
+
+```markdown
+HANDOFF.md
+Current alignment ledger: docs/admin-reporting-alignment-ledger.md
+```
+
+If there is no pointer, check `docs/alignment-ledger.md`, then search existing `docs/*alignment-ledger*.md`, `docs/*decision-log*.md`, and `docs/*design-state*.md` files. If several plausible ledgers exist, ask which one is active.
 
 ## Example Artifact
 

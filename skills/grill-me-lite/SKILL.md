@@ -1,6 +1,6 @@
 ---
 name: grill-me-lite
-description: Use before building ambiguous product, UX, architecture, API, data-model, or task plans. Trigger on requests like "grill me", "stress test this", "think hard", "help me decide", "turn this into an epic", or "ask me questions before building". Inspect available code/docs first, then ask one sharp question at a time with a recommended default, consequence, and stopping rule. If decisions need to persist across sessions, summarize them or ask whether to use the user's preferred durable decision-log workflow.
+description: Use before building ambiguous product, UX, architecture, API, data-model, or task plans. Trigger on "grill me", "stress test this", "think hard", "help me decide", or "ask me questions before building". Inspect evidence first, ask one sharp question at a time with a recommended default, and persist durable decisions by default when a ledger/log workflow is available.
 ---
 
 # grill-me-lite
@@ -12,7 +12,9 @@ https://github.com/mattpocock/skills/blob/main/skills/productivity/grill-me/SKIL
 
 Matt's skill is intentionally compact: interview the user relentlessly, walk the decision tree, ask one question at a time, provide a recommended answer, and inspect the codebase instead of asking when possible.
 
-This variant keeps that spirit, but adds operational guardrails for product-building sessions: broader triggers, evidence-first questions, recommended defaults, a stopping rule, and an explicit output shape. It is self-contained and does not require any companion skill.
+This variant keeps that spirit, but adds operational guardrails for product-building sessions: broader triggers, evidence-first questions, recommended defaults, durable-decision capture, a stopping rule, and an explicit output shape.
+
+It is installable on its own. When a compatible decision-log or `alignment-ledger` workflow is available, use it by default for durable project/product/architecture work. If no durable-state workflow is available, still end with a compact decision summary the user can save elsewhere.
 
 ## When to use
 
@@ -42,7 +44,26 @@ Do not use for obvious bug fixes, routine commands, tiny reversible edits, or ca
 5. If a question can be answered by inspecting available evidence, inspect first instead of asking the user.
 6. After each user answer, update the working understanding and ask the next highest-leverage question.
 7. Stop grilling when the remaining uncertainty no longer changes the plan materially.
-8. End with a compact aligned plan: decisions, assumptions, small testable tasks, quality gates, and any explicit open questions.
+8. Persist or summarize the decisions before implementation planning.
+9. End with a compact aligned plan: decisions, assumptions, small testable tasks, quality gates, and any explicit open questions.
+
+## Persistence default
+
+Most substantial grill sessions create decisions that should survive the chat. Default to persistence when the discussion involves:
+
+- product direction, UX, architecture, APIs, data models, migrations, or rollout
+- a plan likely to resume in another session
+- an epic/spec/task breakdown
+- decisions, assumptions, or open questions that would be costly to rediscover
+
+If `alignment-ledger` or another durable decision-log workflow is available:
+
+1. Find the existing ledger before asking new intent questions.
+2. Update it after a decision is confirmed, an assumption changes, or an open question is answered.
+3. Reconcile new answers against prior decisions and call out contradictions.
+4. Keep task status out of the ledger; task trackers own execution.
+
+Do not persist only when the user explicitly says the work is throwaway, private to the current chat, or not worth saving.
 
 ## Question contract
 
@@ -112,5 +133,6 @@ When aligned, produce:
 - Plan / tasks, small and testable
 - Gates / evidence
 - Open questions, if any
+- Ledger update or saveable decision summary
 
 Then proceed with implementation only if the user asked for action or confirms the plan.

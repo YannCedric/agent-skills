@@ -1,31 +1,58 @@
 ---
 name: alignment-ledger
-description: Maintain a lightweight evolving alignment ledger for product, UX, architecture, or strategy discussions. Use when the user asks to start or update an alignment ledger, decision log, design state, exploration log, product state, or durable planning artifact; when a discussion spans multiple turns/sessions; when decisions, assumptions, open questions, or parked ideas need tracking; or before turning exploration into a spec, epic, or implementation plan.
+description: Maintain a lightweight evolving alignment ledger for product, UX, architecture, or strategy discussions. Use when a discussion spans turns/sessions, decisions need to persist, prior project state must be found, or exploration becomes a spec/epic/implementation plan. Always search for the existing ledger before creating a new one.
 ---
 
 # alignment-ledger
 
 Keep exploratory work from drifting by maintaining one compact source of truth: what is decided, what is assumed, what is open, what is parked, and whether the work is ready to build.
 
-This skill is self-contained. Do not assume any companion skill exists. If the user asks to combine this with another workflow, follow that request at the session level.
+This skill is installable on its own. It also works as the durable-state layer for grill/planning workflows: clarify with one high-leverage question at a time, then capture confirmed decisions, assumptions, open questions, and readiness here.
 
 ## Default workflow
 
-1. Find the current artifact if one exists.
+1. Find the current artifact if one exists; do not create a new ledger until the locator protocol below is exhausted.
 2. If none exists, start with a chat-only snapshot or create a markdown file when the discussion is clearly durable.
 3. Update the artifact after meaningful changes, not every message.
 4. Reconcile new ideas against existing decisions before adding them.
 5. Prune stale assumptions and open questions so the ledger stays small.
 6. Before implementation, check whether the frame, decisions, and acceptance criteria are stable.
 
+## Locator protocol
+
+When resuming work, use this deterministic order:
+
+1. Check the project root `HANDOFF.md` for a line like `Current alignment ledger: docs/<feature>-alignment-ledger.md`.
+2. Check `docs/alignment-ledger.md`. If several feature ledgers exist, this file should act as the index and point to the active ledger.
+3. Search likely files before creating anything new: `docs/*alignment-ledger*.md`, `docs/*decision-log*.md`, `docs/*design-state*.md`, and similar project handoff/spec files.
+4. If exactly one plausible ledger exists, use it and add a pointer to `HANDOFF.md` when that file exists.
+5. If multiple plausible ledgers exist and no pointer/index says which is active, ask before updating or creating.
+6. Create a new ledger only after search fails or the user confirms a new scope.
+
+Do not store mutable decision state in `AGENTS.md` unless the project already uses it that way. Instructions and project state should stay separate when possible.
+
 ## Artifact location
 
 Use the lightest durable place available. These locations are suggestions, not requirements:
 
-- Existing project handoff/spec: update that file.
+- Active project handoff/spec: update that file if it already owns design state, and add/update a `Current alignment ledger:` pointer when the actual ledger lives elsewhere.
 - New project artifact: create `docs/alignment-ledger.md`.
 - Feature-specific artifact: create `docs/<feature>-alignment-ledger.md`.
 - Early exploration: keep a chat-only snapshot until the thread becomes durable.
+
+For projects with multiple feature ledgers, keep `docs/alignment-ledger.md` as a short index:
+
+```markdown
+# Alignment Ledger Index
+
+Updated: <date>
+
+## Active
+- <feature> — `docs/<feature>-alignment-ledger.md` — Status: active
+
+## Archived
+- <feature> — `docs/<feature>-alignment-ledger.md` — Archived because: <reason>
+```
 
 If the runtime cannot write files, maintain the ledger as a compact chat artifact. If the runtime uses another artifact system, use that instead.
 
