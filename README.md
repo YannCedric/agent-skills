@@ -64,25 +64,6 @@ See:
 - [Skill file](skills/alignment-ledger/SKILL.md)
 - [Usage examples](examples/alignment-ledger.md)
 
-### Execution Contract
-
-`execution-contract` makes detached, delegated, background, scheduled, timed, and long-running agent work observable and honest. It separates execution state from reporting state, requires inspectable receipts before lifecycle claims, and fails closed when the runtime cannot provide durable supervision and delivery.
-
-The skill evolved from repeated cases where work completed—or failed—after the parent conversation ended and no terminal result reached Telegram. It now includes:
-
-- commit-before-acknowledgement ordering
-- independent supervision and restart recovery requirements
-- durable, idempotent terminal reporting
-- separate conformance for delegated work and direct scheduled delivery
-- concrete channel receipts instead of optimistic `delivered` flags
-- OpenClaw-specific explorations, local probe evidence, and linked upstream issues
-
-See:
-
-- [Skill file](skills/execution-contract/SKILL.md)
-- [Evolution, explorations, and known OpenClaw issues](skills/execution-contract/references/evolution-and-known-issues.md)
-- [Adapter conformance suite](skills/execution-contract/references/conformance.md)
-
 ### Diagrammer
 
 `diagrammer` creates deterministic technical diagrams as SVG/HTML with PNG exports. It is designed for architecture diagrams, system diagrams, data-flow diagrams, failure/retry paths, and other connector-heavy technical visuals where labels, arrows, shapes, and validation matter.
